@@ -1,0 +1,236 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Archivos de origen">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Archivos de encabezado">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Archivos de origen\imgui">
+      <UniqueIdentifier>{c6e96f2c-0357-47e3-b09e-669282738f14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de origen\net">
+      <UniqueIdentifier>{c01a8b86-670b-452a-8522-58ff5b4d62da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de origen\agents">
+      <UniqueIdentifier>{32db7409-6a76-4a66-9878-9664dca36f8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de origen\modules">
+      <UniqueIdentifier>{68a47449-12a8-4d49-b0a9-6512ac1db68c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Application.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui.cpp">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_demo.cpp">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_draw.cpp">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_impl_dx9.cpp">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_impl_win32.cpp">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_widgets.cpp">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net\UDPSocket.cpp">
+      <Filter>Archivos de origen\net</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net\TCPSocket.cpp">
+      <Filter>Archivos de origen\net</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net\TCPNetworkManager.cpp">
+      <Filter>Archivos de origen\net</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net\SocketUtil.cpp">
+      <Filter>Archivos de origen\net</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net\SocketAddress.cpp">
+      <Filter>Archivos de origen\net</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Node.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UCP.cpp">
+      <Filter>Archivos de origen\agents</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net\MemoryStream.cpp">
+      <Filter>Archivos de origen\net</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net\StringUtils.cpp">
+      <Filter>Archivos de origen\net</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Log.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModuleLogView.cpp">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModuleMainMenu.cpp">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModuleNetworkManager.cpp">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModuleWindow.cpp">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModuleYellowPages.cpp">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Agent.cpp">
+      <Filter>Archivos de origen\agents</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MCC.cpp">
+      <Filter>Archivos de origen\agents</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MCP.cpp">
+      <Filter>Archivos de origen\agents</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UCC.cpp">
+      <Filter>Archivos de origen\agents</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModuleAgentContainer.cpp">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModuleNodeCluster.cpp">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ItemList.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModuleTextures.cpp">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Agent.h">
+      <Filter>Archivos de origen\agents</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AgentLocation.h">
+      <Filter>Archivos de origen\agents</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MCC.h">
+      <Filter>Archivos de origen\agents</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MCP.h">
+      <Filter>Archivos de origen\agents</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UCC.h">
+      <Filter>Archivos de origen\agents</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UCP.h">
+      <Filter>Archivos de origen\agents</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Application.h">
+      <Filter>Archivos de origen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Globals.h">
+      <Filter>Archivos de origen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ItemList.h">
+      <Filter>Archivos de origen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Log.h">
+      <Filter>Archivos de origen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Node.h">
+      <Filter>Archivos de origen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Packets.h">
+      <Filter>Archivos de origen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\ByteSwap.h">
+      <Filter>Archivos de origen\net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\MemoryStream.h">
+      <Filter>Archivos de origen\net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\Net.h">
+      <Filter>Archivos de origen\net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\SocketAddress.h">
+      <Filter>Archivos de origen\net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\SocketUtil.h">
+      <Filter>Archivos de origen\net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\StringUtils.h">
+      <Filter>Archivos de origen\net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\TCPNetworkManager.h">
+      <Filter>Archivos de origen\net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\TCPSocket.h">
+      <Filter>Archivos de origen\net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\UDPSocket.h">
+      <Filter>Archivos de origen\net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Module.h">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModuleAgentContainer.h">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModuleLogView.h">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModuleMainMenu.h">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModuleNetworkManager.h">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModuleNodeCluster.h">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModuleTextures.h">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModuleWindow.h">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModuleYellowPages.h">
+      <Filter>Archivos de origen\modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imconfig.h">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imgui.h">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imgui_impl_dx9.h">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imgui_impl_win32.h">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imgui_internal.h">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imstb_rectpack.h">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imstb_textedit.h">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imstb_truetype.h">
+      <Filter>Archivos de origen\imgui</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
