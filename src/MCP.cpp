@@ -7,12 +7,14 @@
 enum State
 {
 	ST_INIT,
+
 	ST_REQUESTING_MCCs,
 	ST_ITERATING_OVER_MCCs,
+	ST_WAITING_MCC_NEGOTIATION_RESPONSE,
 
 	// TODO: Other states
 
-	ST_NEGOTIATION_FINISHED
+	ST_NEGOTIATION_FINISHED,
 };
 
 MCP::MCP(Node *node, uint16_t requestedItemID, uint16_t contributedItemID, unsigned int searchDepth) :
@@ -33,17 +35,22 @@ void MCP::update()
 	switch (state())
 	{
 	case ST_INIT:
-		queryMCCsForItem(_requestedItemId);
-		setState(ST_REQUESTING_MCCs);
+	{
+		GetMCCsWithItem();
+
 		break;
+	}
 
-	case ST_ITERATING_OVER_MCCs:
-		// TODO: Handle this state
+	case State::ST_ITERATING_OVER_MCCs:
+	{
+		SetNextMCC();
+		StartCurrentMCCNegotiation();
+
 		break;
+	}
 
-	// TODO: Handle other states
-
-	default:;
+	default:
+		break;
 	}
 }
 
@@ -68,29 +75,24 @@ void MCP::OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader
 			PacketReturnMCCsForItem packetData;
 			packetData.Deserialize(stream);
 
-			// Log the returned MCCs // Do delete
-			//for (auto &mccdata : packetData.mccAddresses)
-			//{
-			//	uint16_t agentId = mccdata.agentId;
-			//	const std::string &hostIp = mccdata.hostIP;
-			//	uint16_t hostPort = mccdata.hostPort;
-			//	//iLog << " - MCC: " << agentId << " - host: " << hostIp << ":" << hostPort;
-			//}
-
 			// Store the returned MCCs from YP
-			_mccRegisters.swap(packetData.mccAddresses);
-
 			// Select the first MCC to negociate
-			_mccRegisterIndex = 0;
-			setState(ST_ITERATING_OVER_MCCs);
-
-			socket->Disconnect();
+			InitMCCsNegotiationList(packetData.mccAddresses);
 		}
 		else
 		{
 			wLog << "OnPacketReceived() - PacketType::ReturnMCCsForItem was unexpected.";
 		}
 		break;
+	}
+
+	case PacketType::MCCToMCPNegotiationResponse:
+	{
+		if (state() == State::ST_WAITING_MCC_NEGOTIATION_RESPONSE)
+		{
+
+			break;
+		}
 	}
 
 	// TODO: Handle other packets
@@ -110,9 +112,63 @@ bool MCP::negotiationAgreement() const
 	return false; // TODO: Did the child UCP find a solution?
 }
 
-
-bool MCP::queryMCCsForItem(int itemId)
+void MCP::GetMCCsWithItem()
 {
+	GetMCCsWithItem_SendToYellowPages(_requestedItemId);
+
+	setState(ST_REQUESTING_MCCs);
+}
+
+void MCP::InitMCCsNegotiationList(std::vector<AgentLocation> agents)
+{
+	_mccRegisters.swap(agents);
+
+	_mccRegisterIndex = 0;
+	setState(ST_ITERATING_OVER_MCCs);
+
+	StartCurrentMCCNegotiation();
+}
+
+void MCP::StartCurrentMCCNegotiation()
+{
+	if (state() == State::ST_ITERATING_OVER_MCCs)
+	{
+		if (_mccRegisterIndex < _mccRegisters.size())
+		{
+			AgentLocation curr_agent = _mccRegisters[_mccRegisterIndex];
+
+			StartNegotation_SendToMCC(curr_agent);
+
+			setState(State::ST_WAITING_MCC_NEGOTIATION_RESPONSE);
+		}
+
+		// There is a problem, finish negotiation
+		else
+		{
+			setState(State::ST_NEGOTIATION_FINISHED);
+		}
+	}
+}
+
+void MCP::SetNextMCC()
+{
+	if (state() == State::ST_ITERATING_OVER_MCCs)
+	{
+		if (_mccRegisterIndex + 1 < _mccRegisters.size())
+		{
+			++_mccRegisterIndex;
+		}
+
+		// There are no mor mccs to negotiate
+		else
+		{
+			setState(State::ST_NEGOTIATION_FINISHED);
+		}
+	}
+}
+
+bool MCP::GetMCCsWithItem_SendToYellowPages(int itemId)
+{	
 	// Create message header and data
 	PacketHeader packetHead;
 	packetHead.packetType = PacketType::QueryMCCsForItem;
@@ -129,4 +185,23 @@ bool MCP::queryMCCsForItem(int itemId)
 
 	// 1) Ask YP for MCC hosting the item 'itemId'
 	return sendPacketToYellowPages(stream);
+}
+
+bool MCP::StartNegotation_SendToMCC(const AgentLocation& mcc)
+{
+	// Create message header and data
+	PacketHeader packetHead;
+	packetHead.packetType = PacketType::MCPToMCCNegotiationInfo;
+	packetHead.srcAgentId = id();
+	packetHead.dstAgentId = mcc.agentId;
+
+	PacketMCPToMCCNegotiationInfo packetData;
+	packetData.mcp_offer = _contributedItemId;
+	packetData.mcp_request = _requestedItemId;
+
+	OutputMemoryStream stream;
+	packetHead.Serialize(stream);
+	packetData.Serialize(stream);
+
+	return sendPacketToAgent(mcc.hostIP, mcc.hostPort, stream);
 }

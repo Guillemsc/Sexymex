@@ -34,9 +34,28 @@ public:
 	unsigned int searchDepth() const { return _searchDepth; }
 
 private:
+	// Negotiation control -------------------------
 
-	bool queryMCCsForItem(int itemId);
+	void GetMCCsWithItem();
 
+	void InitMCCsNegotiationList(std::vector<AgentLocation> agents);
+	void StartCurrentMCCNegotiation();
+	void SetNextMCC();
+
+	// ---------------------------------------------
+
+	// Communication control -----------------------
+
+	bool GetMCCsWithItem_SendToYellowPages(int itemId);
+	bool StartNegotation_SendToMCC(const AgentLocation& mcc);
+
+	// ---------------------------------------------
+
+	// Spawning control ----------------------------
+
+	// ---------------------------------------------
+
+private:
 	uint16_t _requestedItemId;
 	uint16_t _contributedItemId;
 

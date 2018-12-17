@@ -19,6 +19,9 @@ enum class PacketType
 	ReturnMCCsForItem,
 	
 	// MCP <-> MCC
+	MCPToMCCNegotiationInfo,
+	MCCToMCPNegotiationResponse,
+
 	// TODO
 	
 	// UCP <-> UCC
@@ -112,6 +115,7 @@ public:
 			mccAddress.Deserialize(stream);
 		}
 	}
+
 	void Serialize(OutputMemoryStream &stream)
 	{
 		auto count = static_cast<uint16_t>(mccAddresses.size());
@@ -122,6 +126,45 @@ public:
 		{
 			mccAddress.Serialize(stream);
 		}
+	}
+};
+
+class PacketMCPToMCCNegotiationInfo
+{
+public:
+	uint16_t mcp_request = 0;
+	uint16_t mcp_offer = 0;
+
+	void Deserialize(InputMemoryStream &stream)
+	{
+		stream.Read(mcp_request);
+		stream.Read(mcp_offer);
+	}
+
+	void Serialize(OutputMemoryStream &stream)
+	{
+		stream.Write(mcp_request);
+		stream.Write(mcp_offer);
+	}
+};
+
+class PacketMCCToMCPNegotiationResponse
+{
+public:
+	bool response = false;
+
+	uint16_t UCCId = 0; // We only use it in case the response it's true
+
+	void Deserialize(InputMemoryStream &stream)
+	{
+		stream.Read(response);
+		stream.Read(UCCId);
+	}
+
+	void Serialize(OutputMemoryStream &stream)
+	{
+		stream.Write(response);
+		stream.Write(UCCId);
 	}
 };
 

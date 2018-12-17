@@ -180,15 +180,16 @@ void ModuleYellowPages::OnPacketReceived(TCPSocketPtr socket, InputMemoryStream 
 
 			// Unregister the MCC from the yellow pages
 			std::list<AgentLocation> &mccs(_mccByItem[inPacketData.itemId]);
-			for (auto it = mccs.begin(); it != mccs.end();) {
-				if (it->agentId == inPacketHead.srcAgentId) {
+			for (auto it = mccs.begin(); it != mccs.end();) 
+			{
+				if (it->agentId == inPacketHead.srcAgentId) 
+				{
 					auto oldIt = it++;
 					mccs.erase(oldIt);
 					break;
 				}
-				else {
+				else 
 					++it;
-				}
 			}
 
 			//// Send RegisterMCCAck packet

@@ -11,8 +11,9 @@ enum State
 	ST_IDLE,
 	
 	// TODO: Other states
+	ST_NEGOTIATING,
 
-	ST_FINISHED
+	ST_FINISHED,
 };
 
 MCC::MCC(Node *node, uint16_t contributedItemId, uint16_t constraintItemId) :
@@ -34,7 +35,7 @@ void MCC::update()
 	{
 		case ST_INIT:
 		{
-			if (registerIntoYellowPages())
+			if (Register_SendToYellowPages())
 			{
 				setState(ST_REGISTERING);
 			}
@@ -49,8 +50,6 @@ void MCC::update()
 		{
 			// See OnPacketReceived()
 			break;
-
-			// TODO: Handle other states
 		}
 
 		case ST_FINISHED:
@@ -67,7 +66,7 @@ void MCC::stop()
 	// Destroy hierarchy below this agent (only a UCC, actually)
 	destroyChildUCC();
 
-	unregisterFromYellowPages();
+	Unregister_SendToYellowPages();
 	setState(ST_FINISHED);
 }
 
@@ -83,11 +82,25 @@ void MCC::OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader
 		if (state() == ST_REGISTERING)
 		{
 			setState(ST_IDLE);
-			socket->Disconnect();
 		}
 		else
 		{
 			wLog << "OnPacketReceived() - PacketType::RegisterMCCAck was unexpected.";
+		}
+
+		socket->Disconnect();
+
+		break;
+	}
+
+	case PacketType::MCPToMCCNegotiationInfo:
+	{
+		if (state() == ST_IDLE)
+		{
+			PacketMCPToMCCNegotiationInfo packetData;
+			packetData.Deserialize(stream);
+
+			HandleMCPNegotiationRequest(socket, packetHeader.srcAgentId, packetData.mcp_offer, packetData.mcp_request);
 		}
 
 		break;
@@ -115,7 +128,25 @@ bool MCC::negotiationAgreement() const
 	return negotiationFinished();
 }
 
-bool MCC::registerIntoYellowPages()
+void MCC::HandleMCPNegotiationRequest(const TCPSocketPtr& socket, uint16_t mcp_id, uint16_t mcp_offer, uint16_t mcp_request)
+{
+	bool negotiate = false;
+	uint16_t ucc_id = 0;
+
+	if (mcp_request == _contributedItemId && state() != State::ST_NEGOTIATING)
+		negotiate = true;
+
+	if (negotiate)
+	{
+		setState(State::ST_NEGOTIATING);
+
+		// Create UCC
+	}
+
+	NegotiationResponse_SendToMCP(socket, mcp_id, negotiate, ucc_id);
+}
+
+bool MCC::Register_SendToYellowPages()
 {
 	// Create message header and data
 	PacketHeader packetHead;
@@ -134,13 +165,14 @@ bool MCC::registerIntoYellowPages()
 	return sendPacketToYellowPages(stream);
 }
 
-void MCC::unregisterFromYellowPages()
+void MCC::Unregister_SendToYellowPages()
 {
 	// Create message
 	PacketHeader packetHead;
 	packetHead.packetType = PacketType::UnregisterMCC;
 	packetHead.srcAgentId = id();
 	packetHead.dstAgentId = -1;
+
 	PacketUnregisterMCC packetData;
 	packetData.itemId = _contributedItemId;
 
@@ -150,6 +182,24 @@ void MCC::unregisterFromYellowPages()
 	packetData.Serialize(stream);
 
 	sendPacketToYellowPages(stream);
+}
+
+void MCC::NegotiationResponse_SendToMCP(const TCPSocketPtr& socket, uint16_t mpc_id, bool response, uint16_t ucc_id)
+{
+	PacketHeader packetHead;
+	packetHead.packetType = PacketType::UnregisterMCC;
+	packetHead.srcAgentId = id();
+	packetHead.dstAgentId = mpc_id;
+
+	PacketMCCToMCPNegotiationResponse packetData;
+	packetData.response = response;
+	packetData.UCCId = ucc_id;
+
+	OutputMemoryStream stream;
+	packetHead.Serialize(stream);
+	packetData.Serialize(stream);
+
+	socket->SendPacket(stream);
 }
 
 void MCC::createChildUCC()

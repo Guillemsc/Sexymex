@@ -32,14 +32,30 @@ public:
 	bool negotiationAgreement() const;
 
 private:
+	// Negotiation control -------------------------
 
-	bool registerIntoYellowPages();
-	
-	void unregisterFromYellowPages();
+	void HandleMCPNegotiationRequest(const TCPSocketPtr& socket, uint16_t mcp_id, uint16_t mcp_offer, uint16_t mcp_request);
+
+	// ---------------------------------------------
+
+	// Communication control -----------------------
+
+	bool Register_SendToYellowPages();
+	void Unregister_SendToYellowPages();
+
+	void NegotiationResponse_SendToMCP(const TCPSocketPtr& socket, uint16_t mpc_id, bool response, uint16_t ucc_id = 0);
+
+	// ---------------------------------------------
+
+	// Spawning control ----------------------------
 
 	void createChildUCC();
 
 	void destroyChildUCC();
+
+	// ---------------------------------------------
+
+private:
 
 	uint16_t _contributedItemId; /**< The contributed item. */
 	uint16_t _constraintItemId; /**< The constraint item. */
