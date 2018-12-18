@@ -2,7 +2,7 @@
 #include "UCC.h"
 #include "Application.h"
 #include "ModuleAgentContainer.h"
-
+#include "ModuleNodeCluster.h"
 
 enum State
 {
@@ -140,7 +140,9 @@ void MCC::HandleMCPNegotiationRequest(const TCPSocketPtr& socket, uint16_t mcp_i
 	{
 		setState(State::ST_NEGOTIATING);
 
-		// Create UCC
+		createChildUCC();
+
+		ucc_id = _ucc->id();
 	}
 
 	NegotiationResponse_SendToMCP(socket, mcp_id, negotiate, ucc_id);
@@ -187,7 +189,7 @@ void MCC::Unregister_SendToYellowPages()
 void MCC::NegotiationResponse_SendToMCP(const TCPSocketPtr& socket, uint16_t mpc_id, bool response, uint16_t ucc_id)
 {
 	PacketHeader packetHead;
-	packetHead.packetType = PacketType::UnregisterMCC;
+	packetHead.packetType = PacketType::MCCToMCPNegotiationResponse;
 	packetHead.srcAgentId = id();
 	packetHead.dstAgentId = mpc_id;
 
@@ -204,10 +206,22 @@ void MCC::NegotiationResponse_SendToMCP(const TCPSocketPtr& socket, uint16_t mpc
 
 void MCC::createChildUCC()
 {
-	// TODO: Create a unicast contributor
+	destroyChildUCC();
+		
+	_ucc = App->modNodeCluster->spawnUCC(this);
 }
 
 void MCC::destroyChildUCC()
 {
-	// TODO: Destroy the unicast contributor child
+	if (UCCExists())
+	{
+		_ucc->stop();
+
+		_ucc.reset();
+	}
+}
+
+bool MCC::UCCExists()
+{
+	return _ucc.get();
 }

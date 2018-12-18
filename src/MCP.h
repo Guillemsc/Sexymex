@@ -30,9 +30,6 @@ public:
 	// Whether or not there was a negotiation agreement
 	bool negotiationAgreement() const;
 
-	// It returns the search depth of this MCP
-	unsigned int searchDepth() const { return _searchDepth; }
-
 private:
 	// Negotiation control -------------------------
 
@@ -41,6 +38,8 @@ private:
 	void InitMCCsNegotiationList(std::vector<AgentLocation> agents);
 	void StartCurrentMCCNegotiation();
 	void SetNextMCC();
+
+	void HandleMCCNegotiationResponse(const TCPSocketPtr& socket, bool response, uint16_t ucc_id);
 
 	// ---------------------------------------------
 
@@ -53,17 +52,19 @@ private:
 
 	// Spawning control ----------------------------
 
+	void createChildUCP();
+	void destroyChildUCP();
+	bool UCPExists();
+
 	// ---------------------------------------------
 
 private:
 	uint16_t _requestedItemId;
 	uint16_t _contributedItemId;
 
+	UCPPtr _ucp; /**< Child UCP. */
+
 	int _mccRegisterIndex; /**< Iterator through _mccRegisters. */
 	std::vector<AgentLocation> _mccRegisters; /**< MCCs returned by the YP. */
-
-	unsigned int _searchDepth;
-
-	// TODO: Add extra attributes and methods?
 };
 

@@ -7,7 +7,8 @@
 #include "imgui/imgui.h"
 #include <sstream>
 
-enum State {
+enum State 
+{
 	STOPPED,
 	STARTING,
 	RUNNING,
@@ -35,19 +36,24 @@ bool ModuleNodeCluster::update()
 	switch (state)
 	{
 	case STARTING:
-		if (startSystem()) {
+		if (startSystem()) 
+		{
 			state = RUNNING;
-		} else {
+		} 
+		else 
+		{
 			state = STOPPED;
 			ret = false;
 		}
 		break;
 	case RUNNING:
 		runSystem();
+
 		break;
 	case STOPPING:
 		stopSystem();
 		state = STOPPED;
+
 		break;
 	}
 
@@ -461,28 +467,28 @@ void ModuleNodeCluster::runSystem()
 				<< " +" << mcc->constraintItemId();
 		}
 
-		// Update ItemList with MCPs that found a solution
-		MCP *mcp = agent->asMCP();
-		if (mcp != nullptr && mcp->negotiationFinished() && mcp->searchDepth() == 0)
-		{
-			Node *node = mcp->node();
+		//// Update ItemList with MCPs that found a solution
+		//MCP *mcp = agent->asMCP();
+		//if (mcp != nullptr && mcp->negotiationFinished() && mcp->searchDepth() == 0)
+		//{
+		//	Node *node = mcp->node();
 
-			if (mcp->negotiationAgreement())
-			{
-				node->itemList().addItem(mcp->requestedItemId());
-				node->itemList().removeItem(mcp->contributedItemId());
-				iLog << "MCP exchange at Node " << node->id() << ":"
-					<< " -" << mcp->contributedItemId()
-					<< " +" << mcp->requestedItemId();
-			}
-			else
-			{
-				wLog << "MCP exchange at Node " << node->id() << " not found:"
-					<< " -" << mcp->contributedItemId()
-					<< " +" << mcp->requestedItemId();
-			}
-			mcp->stop();
-		}
+		//	if (mcp->negotiationAgreement())
+		//	{
+		//		node->itemList().addItem(mcp->requestedItemId());
+		//		node->itemList().removeItem(mcp->contributedItemId());
+		//		iLog << "MCP exchange at Node " << node->id() << ":"
+		//			<< " -" << mcp->contributedItemId()
+		//			<< " +" << mcp->requestedItemId();
+		//	}
+		//	else
+		//	{
+		//		wLog << "MCP exchange at Node " << node->id() << " not found:"
+		//			<< " -" << mcp->contributedItemId()
+		//			<< " +" << mcp->requestedItemId();
+		//	}
+		//	mcp->stop();
+		//}
 	}
 
 	// WARNING:
@@ -540,4 +546,38 @@ void ModuleNodeCluster::spawnMCC(int nodeId, int contributedItemId, int constrai
 	{
 		wLog << "Could not find node with ID " << nodeId;
 	}
+}
+
+UCCPtr ModuleNodeCluster::spawnUCC(MCC* mcc)
+{
+	if (mcc != nullptr)
+	{
+		dLog << "Spawn UCC - node " << mcc->node()->id() << " contrib. " << mcc->contributedItemId() << " - constr. " << mcc->constraintItemId();
+
+		if (mcc->node()->id() > 0)
+		{
+			return App->agentContainer->createUCC(mcc->node(), mcc->contributedItemId(), mcc->constraintItemId());
+		}
+		else
+		{
+			wLog << "Could not create UCC";
+		}
+	}
+
+	return UCCPtr();
+}
+
+UCPPtr ModuleNodeCluster::spawnUCP(MCP* mcp)
+{
+	if (mcp != nullptr)
+	{
+		dLog << "Spawn UCP - node " << mcp->node()->id() << " contrib. " << mcp->contributedItemId() << " - constr. " << mcp->requestedItemId();
+
+		if (mcp->node()->id() > 0)
+		{
+			return App->agentContainer->createUCP(mcp->node(), mcp->contributedItemId(), mcp->requestedItemId());
+		}
+	}
+
+	return UCPPtr();
 }

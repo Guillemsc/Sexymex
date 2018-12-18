@@ -29,7 +29,7 @@ public:
 	MCCPtr createMCC(Node *node, uint16_t contributedItemId, uint16_t constraintItemId);
 	MCPPtr createMCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId, unsigned int searchDepth);
 	UCCPtr createUCC(Node *node, uint16_t contributedItemId, uint16_t constraintItemId);
-	UCPPtr createUCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId, const AgentLocation &uccLocation, unsigned int searchDepth);
+	UCPPtr createUCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId);
 
 	// Getters
 	AgentPtr getAgent(int agentId);

@@ -11,7 +11,7 @@ class UCP :
 public:
 
 	// Constructor and destructor
-	UCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId, const AgentLocation &uccLoc, unsigned int searchDepth);
+	UCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId);
 	~UCP();
 
 	// Agent methods
@@ -20,6 +20,26 @@ public:
 	UCP* asUCP() override { return this; }
 	void OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader, InputMemoryStream &stream) override;
 
-	// TODO
+public:
+	// Negotiation control -------------------------
+
+	void StartUCCNegotiation(const TCPSocketPtr& socket, uint16_t negotiating_ucc_id);
+
+	// ---------------------------------------------
+
+	// Communication control -----------------------
+
+
+
+	// ---------------------------------------------
+
+	// Spawning control ----------------------------
+
+
+
+	// ---------------------------------------------
+
+private:
+	uint16_t negotiating_ucc_id = 0;
 };
 

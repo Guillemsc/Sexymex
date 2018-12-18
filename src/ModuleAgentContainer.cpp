@@ -38,9 +38,9 @@ UCCPtr ModuleAgentContainer::createUCC(Node *node, uint16_t contributedItemId, u
 	return ucc;
 }
 
-UCPPtr ModuleAgentContainer::createUCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId, const AgentLocation &uccLocation, unsigned int searchDepth)
+UCPPtr ModuleAgentContainer::createUCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId)
 {
-	UCPPtr ucp(new UCP(node, requestedItemId, contributedItemId, uccLocation, searchDepth));
+	UCPPtr ucp(new UCP(node, requestedItemId, contributedItemId));
 	addAgent(ucp);
 
 	return ucp;

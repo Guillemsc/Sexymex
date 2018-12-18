@@ -5,7 +5,8 @@
 #include "Log.h"
 #include "imgui/imgui.h"
 
-enum State {
+enum State 
+{
 	STOPPED,
 	STARTING,
 	RUNNING,
@@ -33,15 +34,21 @@ bool ModuleYellowPages::update()
 	switch (state)
 	{
 	case STARTING:
-		if (startService()) {
+		if (startService()) 
+		{
 			state = RUNNING;
-		} else {
+		} 
+		else 
+		{
 			state = STOPPED;
 			ret = false;
 		}
+
 		break;
+
 	case RUNNING:
 		break;
+
 	case STOPPING:
 		stopService();
 		state = STOPPED;

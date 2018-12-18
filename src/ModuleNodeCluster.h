@@ -33,6 +33,13 @@ public:
 
 	void OnDisconnected(TCPSocketPtr socket) override;
 
+	void spawnMCP(int nodeId, int requestedItemId, int contributedItemId);
+
+	void spawnMCC(int nodeId, int contributedItemId, int constraintItemId);
+
+	UCCPtr spawnUCC(MCC* mcc);
+	UCPPtr spawnUCP(MCP* mcp);
+
 private:
 
 	bool startSystem();
@@ -41,13 +48,7 @@ private:
 
 	void stopSystem();
 
-
-	void spawnMCP(int nodeId, int requestedItemId, int contributedItemId);
-
-	void spawnMCC(int nodeId, int contributedItemId, int constraintItemId);
-
-
-
+private:
 	std::vector<NodePtr> _nodes; /**< Array of nodes spawn in this host. */
 
 	int state = 0; /**< State machine. */

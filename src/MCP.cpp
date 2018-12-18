@@ -2,7 +2,7 @@
 #include "UCP.h"
 #include "Application.h"
 #include "ModuleAgentContainer.h"
-
+#include "ModuleNodeCluster.h"
 
 enum State
 {
@@ -10,9 +10,9 @@ enum State
 
 	ST_REQUESTING_MCCs,
 	ST_ITERATING_OVER_MCCs,
-	ST_WAITING_MCC_NEGOTIATION_RESPONSE,
 
-	// TODO: Other states
+	ST_WAITING_MCC_NEGOTIATION_RESPONSE,
+	ST_NEGOTIATING,
 
 	ST_NEGOTIATION_FINISHED,
 };
@@ -20,8 +20,7 @@ enum State
 MCP::MCP(Node *node, uint16_t requestedItemID, uint16_t contributedItemID, unsigned int searchDepth) :
 	Agent(node),
 	_requestedItemId(requestedItemID),
-	_contributedItemId(contributedItemID),
-	_searchDepth(searchDepth)
+	_contributedItemId(contributedItemID)
 {
 	setState(ST_INIT);
 }
@@ -37,14 +36,6 @@ void MCP::update()
 	case ST_INIT:
 	{
 		GetMCCsWithItem();
-
-		break;
-	}
-
-	case State::ST_ITERATING_OVER_MCCs:
-	{
-		SetNextMCC();
-		StartCurrentMCCNegotiation();
 
 		break;
 	}
@@ -79,10 +70,7 @@ void MCP::OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader
 			// Select the first MCC to negociate
 			InitMCCsNegotiationList(packetData.mccAddresses);
 		}
-		else
-		{
-			wLog << "OnPacketReceived() - PacketType::ReturnMCCsForItem was unexpected.";
-		}
+
 		break;
 	}
 
@@ -90,9 +78,13 @@ void MCP::OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader
 	{
 		if (state() == State::ST_WAITING_MCC_NEGOTIATION_RESPONSE)
 		{
+			PacketMCCToMCPNegotiationResponse packetData;
+			packetData.Deserialize(stream);
 
-			break;
+			HandleMCCNegotiationResponse(socket, packetData.response, packetData.UCCId);
 		}
+
+		break;
 	}
 
 	// TODO: Handle other packets
@@ -133,6 +125,7 @@ void MCP::StartCurrentMCCNegotiation()
 {
 	if (state() == State::ST_ITERATING_OVER_MCCs)
 	{
+		// We start negotiation
 		if (_mccRegisterIndex < _mccRegisters.size())
 		{
 			AgentLocation curr_agent = _mccRegisters[_mccRegisterIndex];
@@ -154,6 +147,7 @@ void MCP::SetNextMCC()
 {
 	if (state() == State::ST_ITERATING_OVER_MCCs)
 	{
+		// We set the next mcc to negotiate
 		if (_mccRegisterIndex + 1 < _mccRegisters.size())
 		{
 			++_mccRegisterIndex;
@@ -163,6 +157,31 @@ void MCP::SetNextMCC()
 		else
 		{
 			setState(State::ST_NEGOTIATION_FINISHED);
+		}
+	}
+}
+
+void MCP::HandleMCCNegotiationResponse(const TCPSocketPtr& socket, bool response, uint16_t ucc_id)
+{
+	if (state() == State::ST_WAITING_MCC_NEGOTIATION_RESPONSE)
+	{
+		// MCC wants to negotiate and returns us the ucc id
+		if (response)
+		{
+			setState(State::ST_NEGOTIATING);
+
+			createChildUCP();
+
+			_ucp->StartUCCNegotiation(socket, ucc_id);
+		}
+
+		// MCC does not want to negotiate, we keep iterating
+		else
+		{
+			setState(State::ST_ITERATING_OVER_MCCs);
+
+			SetNextMCC();
+			StartCurrentMCCNegotiation();
 		}
 	}
 }
@@ -204,4 +223,26 @@ bool MCP::StartNegotation_SendToMCC(const AgentLocation& mcc)
 	packetData.Serialize(stream);
 
 	return sendPacketToAgent(mcc.hostIP, mcc.hostPort, stream);
+}
+
+void MCP::createChildUCP()
+{
+	destroyChildUCP();
+
+	_ucp = App->modNodeCluster->spawnUCP(this);
+}
+
+void MCP::destroyChildUCP()
+{
+	if (UCPExists())
+	{
+		_ucp->stop();
+
+		_ucp.reset();
+	}
+}
+
+bool MCP::UCPExists()
+{
+	return _ucp.get();
 }

@@ -50,8 +50,8 @@ private:
 	// Spawning control ----------------------------
 
 	void createChildUCC();
-
 	void destroyChildUCC();
+	bool UCCExists();
 
 	// ---------------------------------------------
 

@@ -7,10 +7,10 @@
 // TODO: Make an enum with the states
 
 
-UCP::UCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId, const AgentLocation &uccLocation, unsigned int searchDepth) :
+UCP::UCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId) :
 	Agent(node)
 {
-	// TODO: Save input parameters
+	this->negotiating_ucc_id = negotiating_ucc_id;
 }
 
 UCP::~UCP()
@@ -45,4 +45,9 @@ void UCP::OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader
 	default:
 		wLog << "OnPacketReceived() - Unexpected PacketType.";
 	}
+}
+
+void UCP::StartUCCNegotiation(const TCPSocketPtr & socket, uint16_t negotiating_ucc_id)
+{
+	this->negotiating_ucc_id = negotiating_ucc_id;
 }
