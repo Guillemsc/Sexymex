@@ -19,11 +19,12 @@ enum class PacketType
 	ReturnMCCsForItem,
 	
 	// MCP <-> MCC
-	MCPToMCCNegotiationInfo,
+	MCPToMCCNegotiationRequest,
 	MCCToMCPNegotiationResponse,
 	
 	// UCP <-> UCC
-	// TODO
+	UCPToUCCNegotiationRequest,
+	UCCToUCPNegotiationResponse,
 	
 	Last
 };
@@ -127,7 +128,7 @@ public:
 	}
 };
 
-class PacketMCPToMCCNegotiationInfo
+class PacketMCPToMCCNegotiationRequest
 {
 public:
 	uint16_t mcp_request = 0;
@@ -166,14 +167,44 @@ public:
 	}
 };
 
+class PacketUCPToUCCNegotiationRequest
+{
+public:
+	uint16_t ucp_request = 0;
+	uint16_t ucp_offer = 0;
 
+	void Deserialize(InputMemoryStream &stream)
+	{
+		stream.Read(ucp_request);
+		stream.Read(ucp_offer);
+	}
 
-// MCP <-> MCC
+	void Serialize(OutputMemoryStream &stream)
+	{
+		stream.Write(ucp_request);
+		stream.Write(ucp_offer);
+	}
+};
 
-//TODO
+class PacketUCCToUCPNegotiationResponse
+{
+public:
+	bool response = false;
+	bool solution_found = false;
 
+	uint16_t UCCconstraint = 0; // We only use it in case the response it's true and solution found false
 
+	void Deserialize(InputMemoryStream &stream)
+	{
+		stream.Read(response);
+		stream.Read(solution_found);
+		stream.Read(UCCconstraint);
+	}
 
-// UCP <-> UCC
-
-// TODO
+	void Serialize(OutputMemoryStream &stream)
+	{
+		stream.Write(response);
+		stream.Write(solution_found);
+		stream.Write(UCCconstraint);
+	}
+};

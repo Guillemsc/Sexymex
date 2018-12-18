@@ -93,11 +93,11 @@ void MCC::OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader
 		break;
 	}
 
-	case PacketType::MCPToMCCNegotiationInfo:
+	case PacketType::MCPToMCCNegotiationRequest:
 	{
 		if (state() == ST_IDLE)
 		{
-			PacketMCPToMCCNegotiationInfo packetData;
+			PacketMCPToMCCNegotiationRequest packetData;
 			packetData.Deserialize(stream);
 
 			HandleMCPNegotiationRequest(socket, packetHeader.srcAgentId, packetData.mcp_offer, packetData.mcp_request);

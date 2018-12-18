@@ -16,6 +16,29 @@ public:
 	UCC* asUCC() override { return this; }
 	void OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader, InputMemoryStream &stream) override;
 
-	// TODO
+private:
+	// Negotiation control -------------------------
+
+	void HandleUCPNegotiationRequest(const TCPSocketPtr& socket, uint16_t ucp_id, uint16_t ucp_offer, uint16_t ucp_request);
+
+	// ---------------------------------------------
+
+	// Communication control -----------------------
+
+	void NegotiationResponse_SendToUCP(const TCPSocketPtr& socket, uint16_t ucp_id, bool response, bool solution_found);
+
+	// ---------------------------------------------
+
+	// Spawning control ----------------------------
+
+
+
+	// ---------------------------------------------
+
+private:
+	uint16_t _contributedItemId;
+	uint16_t _constraintItemId;
+
+	MCC* _mcc = nullptr; /**< Parent MCC. */
 };
 

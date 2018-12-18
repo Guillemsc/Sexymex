@@ -172,7 +172,9 @@ void MCP::HandleMCCNegotiationResponse(const TCPSocketPtr& socket, bool response
 
 			createChildUCP();
 
-			_ucp->StartUCCNegotiation(socket, ucc_id);
+			AgentLocation curr_agent = _mccRegisters[_mccRegisterIndex];
+
+			_ucp->StartUCCNegotiation(curr_agent, ucc_id);
 		}
 
 		// MCC does not want to negotiate, we keep iterating
@@ -210,11 +212,11 @@ bool MCP::StartNegotation_SendToMCC(const AgentLocation& mcc)
 {
 	// Create message header and data
 	PacketHeader packetHead;
-	packetHead.packetType = PacketType::MCPToMCCNegotiationInfo;
+	packetHead.packetType = PacketType::MCPToMCCNegotiationRequest;
 	packetHead.srcAgentId = id();
 	packetHead.dstAgentId = mcc.agentId;
 
-	PacketMCPToMCCNegotiationInfo packetData;
+	PacketMCPToMCCNegotiationRequest packetData;
 	packetData.mcp_offer = _contributedItemId;
 	packetData.mcp_request = _requestedItemId;
 

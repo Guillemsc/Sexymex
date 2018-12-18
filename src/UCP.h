@@ -4,6 +4,7 @@
 // Forward declaration
 class MCP;
 using MCPPtr = std::shared_ptr<MCP>;
+class AgentLocation;
 
 class UCP :
 	public Agent
@@ -23,13 +24,14 @@ public:
 public:
 	// Negotiation control -------------------------
 
-	void StartUCCNegotiation(const TCPSocketPtr& socket, uint16_t negotiating_ucc_id);
+	void StartUCCNegotiation(const AgentLocation& agent, uint16_t negotiating_ucc_id);
+	void HandleUCCNegotiationResponse(const TCPSocketPtr& socket, bool response, bool solution_found, uint16_t ucc_constraint);
 
 	// ---------------------------------------------
 
 	// Communication control -----------------------
 
-
+	bool StartNegotation_SendToUCC(const AgentLocation& mcc);
 
 	// ---------------------------------------------
 
@@ -41,5 +43,10 @@ public:
 
 private:
 	uint16_t negotiating_ucc_id = 0;
+
+	uint16_t _requestedItemId;
+	uint16_t _contributedItemId;
+
+	MCP* _mcp = nullptr; /**< Parent MCP. */
 };
 
