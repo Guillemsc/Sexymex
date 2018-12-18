@@ -24,23 +24,23 @@ MCCPtr ModuleAgentContainer::createMCC(Node *node, uint16_t contributedItemId, u
 
 MCPPtr ModuleAgentContainer::createMCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId, unsigned int searchDepth)
 {
-	MCPPtr mcp(new MCP(node, requestedItemId, contributedItemId, searchDepth));
+	MCPPtr mcp(new MCP(node, requestedItemId, contributedItemId));
 	addAgent(mcp);
 
 	return mcp;
 }
 
-UCCPtr ModuleAgentContainer::createUCC(Node *node, uint16_t contributedItemId, uint16_t constraintItemId)
+UCCPtr ModuleAgentContainer::createUCC(Node *node, MCC* parent, uint16_t contributedItemId, uint16_t constraintItemId)
 {
-	UCCPtr ucc(new UCC(node, contributedItemId, constraintItemId));
+	UCCPtr ucc(new UCC(node, parent, contributedItemId, constraintItemId));
 	addAgent(ucc);
 
 	return ucc;
 }
 
-UCPPtr ModuleAgentContainer::createUCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId)
+UCPPtr ModuleAgentContainer::createUCP(Node *node, MCP* parent, uint16_t requestedItemId, uint16_t contributedItemId)
 {
-	UCPPtr ucp(new UCP(node, requestedItemId, contributedItemId));
+	UCPPtr ucp(new UCP(node, parent, requestedItemId, contributedItemId));
 	addAgent(ucp);
 
 	return ucp;

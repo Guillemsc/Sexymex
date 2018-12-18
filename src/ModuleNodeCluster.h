@@ -6,6 +6,23 @@
 #include "MCC.h"
 #include "MCP.h"
 
+enum NodeOperationType
+{
+	ADD,
+	REMOVE,
+	END,
+};
+
+class NodeOperation
+{
+public:
+	Node* node = nullptr;
+
+	uint16_t value = 0;
+
+	NodeOperationType type = NodeOperationType::END;
+};
+
 class ModuleNodeCluster : public Module, public TCPNetworkManagerDelegate
 {
 public:
@@ -33,12 +50,12 @@ public:
 
 	void OnDisconnected(TCPSocketPtr socket) override;
 
-	void spawnMCP(int nodeId, int requestedItemId, int contributedItemId);
-
+	MCP* spawnMCP(int nodeId, int requestedItemId, int contributedItemId);
 	void spawnMCC(int nodeId, int contributedItemId, int constraintItemId);
-
 	UCCPtr spawnUCC(MCC* mcc);
 	UCPPtr spawnUCP(MCP* mcp);
+
+	void AddNodeOperation(Node* node, NodeOperationType type, uint16_t value);
 
 private:
 
@@ -48,8 +65,11 @@ private:
 
 	void stopSystem();
 
+	void UpdateNodeOperations();
+
 private:
 	std::vector<NodePtr> _nodes; /**< Array of nodes spawn in this host. */
+	std::vector<NodeOperation> node_operations;
 
 	int state = 0; /**< State machine. */
 };

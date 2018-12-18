@@ -14,10 +14,14 @@ enum State
 	ST_WAITING_MCC_NEGOTIATION_RESPONSE,
 	ST_NEGOTIATING,
 
+	ST_WATING_FOR_CHILDS_NEGOTIATIONS,
+
+	ST_WAITING_FOR_MCC_CONNECTION_FINISH,
+
 	ST_NEGOTIATION_FINISHED,
 };
 
-MCP::MCP(Node *node, uint16_t requestedItemID, uint16_t contributedItemID, unsigned int searchDepth) :
+MCP::MCP(Node *node, uint16_t requestedItemID, uint16_t contributedItemID) :
 	Agent(node),
 	_requestedItemId(requestedItemID),
 	_contributedItemId(contributedItemID)
@@ -35,6 +39,8 @@ void MCP::update()
 	{
 	case ST_INIT:
 	{
+		negotiation_agreement = false;
+
 		GetMCCsWithItem();
 
 		break;
@@ -47,9 +53,11 @@ void MCP::update()
 
 void MCP::stop()
 {
-	// TODO: Destroy the underlying search hierarchy (UCP->MCP->UCP->...)
+	destroyChildUCP();
 
 	destroy();
+
+	wLog << "MCP Destroyed";
 }
 
 void MCP::OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader, InputMemoryStream &stream)
@@ -87,6 +95,30 @@ void MCP::OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader
 		break;
 	}
 
+	case PacketType::MCCToMCPConnectionFinished:
+	{
+		negotiation_agreement = true;
+
+		if (!HasParent())
+		{
+			App->modNodeCluster->AddNodeOperation(node(), NodeOperationType::ADD, _requestedItemId);
+			App->modNodeCluster->AddNodeOperation(node(), NodeOperationType::REMOVE, _contributedItemId);
+
+			iLog << "MCP exchange at Node " << node()->id() << ":"
+				<< " -" << contributedItemId()
+				<< " +" << requestedItemId();
+		}
+
+		if (parent_mcp != nullptr)
+		{
+			parent_mcp->ChildMCPSolutionFound();
+		}
+
+		setState(State::ST_NEGOTIATION_FINISHED);
+
+		break;
+	}
+
 	// TODO: Handle other packets
 
 	default:
@@ -101,7 +133,30 @@ bool MCP::negotiationFinished() const
 
 bool MCP::negotiationAgreement() const
 {
-	return false; // TODO: Did the child UCP find a solution?
+	return negotiation_agreement; // TODO: Did the child UCP find a solution?
+}
+
+void MCP::SetParent(MCP * parent)
+{
+	this->parent_mcp = parent;
+
+	if(parent != nullptr)
+		is_child = true;
+}
+
+bool MCP::HasParent()
+{
+	return parent_mcp != nullptr;
+}
+
+bool MCP::IsChild()
+{
+	return is_child;
+}
+
+void MCP::SetNegotiationFinishedState()
+{
+	setState(State::ST_NEGOTIATION_FINISHED);
 }
 
 void MCP::GetMCCsWithItem()
@@ -113,12 +168,29 @@ void MCP::GetMCCsWithItem()
 
 void MCP::InitMCCsNegotiationList(std::vector<AgentLocation> agents)
 {
-	_mccRegisters.swap(agents);
+	if (state() == State::ST_REQUESTING_MCCs)
+	{
+		if (agents.size() > 0)
+		{
+			_mccRegisters.swap(agents);
 
-	_mccRegisterIndex = 0;
-	setState(ST_ITERATING_OVER_MCCs);
+			_mccRegisterIndex = 0;
+			setState(ST_ITERATING_OVER_MCCs);
 
-	StartCurrentMCCNegotiation();
+			StartCurrentMCCNegotiation();
+		}
+		else
+		{
+			setState(State::ST_NEGOTIATION_FINISHED);
+
+			negotiation_agreement = false;
+
+			if (parent_mcp != nullptr)
+			{
+				parent_mcp->ChildMCPSolutionNotFound();
+			}
+		}
+	}
 }
 
 void MCP::StartCurrentMCCNegotiation()
@@ -157,6 +229,13 @@ void MCP::SetNextMCC()
 		else
 		{
 			setState(State::ST_NEGOTIATION_FINISHED);
+
+			negotiation_agreement = false;
+
+			if (parent_mcp != nullptr)
+			{
+				parent_mcp->ChildMCPSolutionNotFound();
+			}
 		}
 	}
 }
@@ -174,7 +253,7 @@ void MCP::HandleMCCNegotiationResponse(const TCPSocketPtr& socket, bool response
 
 			AgentLocation curr_agent = _mccRegisters[_mccRegisterIndex];
 
-			_ucp->StartUCCNegotiation(curr_agent, ucc_id);
+			child_ucp->StartUCCNegotiation(curr_agent, ucc_id);
 		}
 
 		// MCC does not want to negotiate, we keep iterating
@@ -185,6 +264,54 @@ void MCP::HandleMCCNegotiationResponse(const TCPSocketPtr& socket, bool response
 			SetNextMCC();
 			StartCurrentMCCNegotiation();
 		}
+	}
+}
+
+void MCP::ChildUCPSolutionFound()
+{
+	if (state() == State::ST_NEGOTIATING)
+	{
+		AgentLocation curr_agent = _mccRegisters[_mccRegisterIndex];
+		FinishNegotiation_SendToMCC(curr_agent);
+
+		setState(State::ST_WAITING_FOR_MCC_CONNECTION_FINISH);
+	}
+}
+
+void MCP::ChildUCPNegotiationNotFound()
+{
+	if (state() == State::ST_NEGOTIATING)
+	{
+		setState(State::ST_ITERATING_OVER_MCCs);
+
+		destroyChildUCP();
+
+		SetNextMCC();
+		StartCurrentMCCNegotiation();
+	}
+}
+
+void MCP::ChildMCPSolutionFound()
+{
+	if (state() == State::ST_NEGOTIATING)
+	{
+		AgentLocation curr_agent = _mccRegisters[_mccRegisterIndex];
+		FinishNegotiation_SendToMCC(curr_agent);
+
+		setState(State::ST_WAITING_FOR_MCC_CONNECTION_FINISH);
+	}
+}
+
+void MCP::ChildMCPSolutionNotFound()
+{
+	if (state() == State::ST_NEGOTIATING)
+	{
+		if (parent_mcp != nullptr)
+		{
+			parent_mcp->ChildMCPSolutionNotFound();
+		}
+
+		setState(State::ST_NEGOTIATION_FINISHED);
 	}
 }
 
@@ -227,24 +354,53 @@ bool MCP::StartNegotation_SendToMCC(const AgentLocation& mcc)
 	return sendPacketToAgent(mcc.hostIP, mcc.hostPort, stream);
 }
 
+bool MCP::FinishNegotiation_SendToMCC(const AgentLocation & mcc)
+{
+	PacketHeader packetHead;
+	packetHead.packetType = PacketType::MCPToMCCNegotiationFinish;
+	packetHead.srcAgentId = id();
+	packetHead.dstAgentId = mcc.agentId;
+
+	OutputMemoryStream stream;
+	packetHead.Serialize(stream);
+
+	return sendPacketToAgent(mcc.hostIP, mcc.hostPort, stream);
+}
+
 void MCP::createChildUCP()
 {
 	destroyChildUCP();
 
-	_ucp = App->modNodeCluster->spawnUCP(this);
+	child_ucp = App->modNodeCluster->spawnUCP(this).get();
 }
 
 void MCP::destroyChildUCP()
 {
-	if (UCPExists())
+	if (ChildUCPExists())
 	{
-		_ucp->stop();
-
-		_ucp.reset();
+		child_ucp = nullptr;
 	}
 }
 
-bool MCP::UCPExists()
+bool MCP::ChildUCPExists()
 {
-	return _ucp.get();
+	return child_ucp != nullptr;
+}
+
+void MCP::createChildMCP(uint16_t requestedItemId)
+{
+	destroyChildMCP();
+
+	child_mcp = App->modNodeCluster->spawnMCP(node()->id(), requestedItemId, _contributedItemId);
+	child_mcp->SetParent(this);
+}
+
+void MCP::destroyChildMCP()
+{
+	child_mcp = nullptr;
+}
+
+bool MCP::ChildMCPExists()
+{
+	return child_mcp != nullptr;
 }

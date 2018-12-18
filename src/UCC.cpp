@@ -11,11 +11,13 @@ enum State
 	ST_NEGOTIATION_FINISHED,
 };
 
-UCC::UCC(Node *node, uint16_t contributedItemId, uint16_t constraintItemId) :
+UCC::UCC(Node *node, MCC* _mcc, uint16_t contributedItemId, uint16_t constraintItemId) :
 	_constraintItemId(constraintItemId),
 	_contributedItemId(contributedItemId),
 	Agent(node)
 {
+	this->_mcc = _mcc;
+
 	setState(State::ST_IDLE);
 }
 
@@ -35,15 +37,12 @@ void UCC::OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader
 	switch (packetType)
 	{
 	case PacketType::UCPToUCCNegotiationRequest:
-	{
-		if (state() == State::ST_IDLE)
-		{
-			PacketUCPToUCCNegotiationRequest packetData;
-			packetData.Deserialize(stream);
+	{		
+		PacketUCPToUCCNegotiationRequest packetData;
+		packetData.Deserialize(stream);
 
-			HandleUCPNegotiationRequest(socket, packetHeader.srcAgentId, packetData.ucp_offer, packetData.ucp_request);
-		}
-
+		HandleUCPNegotiationRequest(socket, packetHeader.srcAgentId, packetData.ucp_offer, packetData.ucp_request);
+		
 		break;
 	}
 
@@ -64,14 +63,13 @@ void UCC::HandleUCPNegotiationRequest(const TCPSocketPtr& socket, uint16_t ucp_i
 		if (ucp_offer == _constraintItemId)
 		{
 			solution_found = true;
-
-			setState(State::ST_NEGOTIATION_FINISHED);
 		}
-
-		setState(State::ST_NEGOTIATING);
 	}
 
 	NegotiationResponse_SendToUCP(socket, ucp_id, negotiate, solution_found);
+
+	setState(State::ST_NEGOTIATION_FINISHED);
+	stop();
 }
 
 void UCC::NegotiationResponse_SendToUCP(const TCPSocketPtr & socket, uint16_t ucp_id, bool response, bool solution_found)

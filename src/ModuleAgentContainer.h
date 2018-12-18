@@ -28,8 +28,8 @@ public:
 	// Agent creation methods
 	MCCPtr createMCC(Node *node, uint16_t contributedItemId, uint16_t constraintItemId);
 	MCPPtr createMCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId, unsigned int searchDepth);
-	UCCPtr createUCC(Node *node, uint16_t contributedItemId, uint16_t constraintItemId);
-	UCPPtr createUCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId);
+	UCCPtr createUCC(Node *node, MCC* parent, uint16_t contributedItemId, uint16_t constraintItemId);
+	UCPPtr createUCP(Node *node, MCP* parent, uint16_t requestedItemId, uint16_t contributedItemId);
 
 	// Getters
 	AgentPtr getAgent(int agentId);

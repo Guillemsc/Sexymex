@@ -3,6 +3,7 @@
 #include "Application.h"
 #include "ModuleAgentContainer.h"
 #include "AgentLocation.h"
+#include "ModuleNodeCluster.h"
 
 // TODO: Make an enum with the states
 enum State
@@ -10,16 +11,16 @@ enum State
 	ST_IDLE,
 
 	ST_WAITING_UCC_NEGOTIATION_RESPONSE,
-	ST_NEGOTIATING,
 
 	ST_NEGOTIATION_FINISHED,
 };
 
-UCP::UCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId) : 
+UCP::UCP(Node *node, MCP* _mcp, uint16_t requestedItemId, uint16_t contributedItemId) :
 	_requestedItemId(requestedItemId),
 	_contributedItemId(contributedItemId),
 	Agent(node)
 {
+	this->parent_mcp = _mcp;
 	this->negotiating_ucc_id = negotiating_ucc_id;
 
 	setState(State::ST_IDLE);
@@ -41,8 +42,6 @@ void UCP::update()
 
 void UCP::stop()
 {
-	// TODO: Destroy search hierarchy below this agent
-
 	destroy();
 }
 
@@ -52,7 +51,7 @@ void UCP::OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader
 
 	switch (packetType)
 	{
-	case PacketType::MCCToMCPNegotiationResponse:
+	case PacketType::UCCToUCPNegotiationResponse:
 	{
 		if (state() == State::ST_WAITING_UCC_NEGOTIATION_RESPONSE)
 		{
@@ -90,14 +89,23 @@ void UCP::HandleUCCNegotiationResponse(const TCPSocketPtr & socket, bool respons
 		{
 			if (solution_found)
 			{
-
+				parent_mcp->ChildUCPSolutionFound();
 			}
 			else
 			{
+				parent_mcp->createChildMCP(ucc_constraint);
 
+				wLog << "UCP started negotiation but not found solution, creating new MCP [" << ucc_constraint << " : " << _contributedItemId << "]";
 			}
 		}
+		else
+		{
+			parent_mcp->ChildUCPNegotiationNotFound();
+		}
 	}
+
+	setState(State::ST_NEGOTIATION_FINISHED);
+	stop();
 }
 
 bool UCP::StartNegotation_SendToUCC(const AgentLocation & agent)

@@ -7,7 +7,7 @@ class UCC :
 public:
 
 	// Constructor and destructor
-	UCC(Node *node, uint16_t contributedItemId, uint16_t constraintItemId);
+	UCC(Node *node, MCC* _mcc, uint16_t contributedItemId, uint16_t constraintItemId);
 	~UCC();
 
 	// Agent methods
@@ -16,13 +16,14 @@ public:
 	UCC* asUCC() override { return this; }
 	void OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader, InputMemoryStream &stream) override;
 
-private:
+public:
 	// Negotiation control -------------------------
 
 	void HandleUCPNegotiationRequest(const TCPSocketPtr& socket, uint16_t ucp_id, uint16_t ucp_offer, uint16_t ucp_request);
 
 	// ---------------------------------------------
 
+private:
 	// Communication control -----------------------
 
 	void NegotiationResponse_SendToUCP(const TCPSocketPtr& socket, uint16_t ucp_id, bool response, bool solution_found);

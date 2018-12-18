@@ -31,19 +31,24 @@ public:
 	// Whether or not there was a negotiation agreement
 	bool negotiationAgreement() const;
 
-private:
+	void SetParent(MCC* parent);
+
+public:
 	// Negotiation control -------------------------
 
 	void HandleMCPNegotiationRequest(const TCPSocketPtr& socket, uint16_t mcp_id, uint16_t mcp_offer, uint16_t mcp_request);
 
 	// ---------------------------------------------
 
+private:
 	// Communication control -----------------------
 
 	bool Register_SendToYellowPages();
 	void Unregister_SendToYellowPages();
 
 	void NegotiationResponse_SendToMCP(const TCPSocketPtr& socket, uint16_t mpc_id, bool response, uint16_t ucc_id = 0);
+
+	void ConnectionFinished_SendToMCP(const TCPSocketPtr& socket, uint16_t mpc_id);
 
 	// ---------------------------------------------
 
@@ -56,9 +61,10 @@ private:
 	// ---------------------------------------------
 
 private:
-
 	uint16_t _contributedItemId; /**< The contributed item. */
 	uint16_t _constraintItemId; /**< The constraint item. */
+
+	MCC* parent = nullptr;
 
 	UCCPtr _ucc; /**< Child UCC. */
 };

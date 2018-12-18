@@ -57,6 +57,8 @@ bool ModuleNodeCluster::update()
 		break;
 	}
 
+	UpdateNodeOperations();
+
 	return ret;
 }
 
@@ -293,9 +295,12 @@ bool ModuleNodeCluster::updateGUI()
 					ImGui::Text(" - Petition: %d", requestedItem);
 
 					ImGui::Combo("Contribution", &comboItem, (const char **)&comboCStrings[0], (int)comboCStrings.size());
-					if (ImGui::Button("Spawn MCP")) {
+					if (ImGui::Button("Spawn MCP")) 
+					{
 						int contributedItem = itemIds[comboItem];
+
 						spawnMCP(selectedNode, requestedItem, contributedItem);
+
 						ImGui::CloseCurrentPopup();
 					}
 				}
@@ -339,6 +344,9 @@ void ModuleNodeCluster::OnPacketReceived(TCPSocketPtr socket, InputMemoryStream 
 
 	PacketHeader packetHead;
 	packetHead.Deserialize(stream);
+
+	if (packetHead.dstAgentId == 18)
+		int i = 0;
 
 	// Get the agent
 	auto agentPtr = App->agentContainer->getAgent(packetHead.dstAgentId);
@@ -459,36 +467,25 @@ void ModuleNodeCluster::runSystem()
 		if (mcc != nullptr && mcc->negotiationFinished())
 		{
 			Node *node = mcc->node();
-			node->itemList().removeItem(mcc->contributedItemId());
-			node->itemList().addItem(mcc->constraintItemId());
+
 			mcc->stop();
-			iLog << "MCC exchange at Node " << node->id() << ":"
-				<< " -" << mcc->contributedItemId()
-				<< " +" << mcc->constraintItemId();
 		}
 
-		//// Update ItemList with MCPs that found a solution
-		//MCP *mcp = agent->asMCP();
-		//if (mcp != nullptr && mcp->negotiationFinished() && mcp->searchDepth() == 0)
-		//{
-		//	Node *node = mcp->node();
+		// Update ItemList with MCPs that found a solution
+		MCP *mcp = agent->asMCP();
+		if (mcp != nullptr && mcp->negotiationFinished() && !mcp->IsChild())
+		{
+			Node *node = mcp->node();
 
-		//	if (mcp->negotiationAgreement())
-		//	{
-		//		node->itemList().addItem(mcp->requestedItemId());
-		//		node->itemList().removeItem(mcp->contributedItemId());
-		//		iLog << "MCP exchange at Node " << node->id() << ":"
-		//			<< " -" << mcp->contributedItemId()
-		//			<< " +" << mcp->requestedItemId();
-		//	}
-		//	else
-		//	{
-		//		wLog << "MCP exchange at Node " << node->id() << " not found:"
-		//			<< " -" << mcp->contributedItemId()
-		//			<< " +" << mcp->requestedItemId();
-		//	}
-		//	mcp->stop();
-		//}
+			if (!mcp->negotiationAgreement())
+			{
+				wLog << "MCP exchange at Node " << node->id() << " not found:"
+					<< " -" << mcp->contributedItemId()
+					<< " +" << mcp->requestedItemId();
+			}
+
+			mcp->stop();
+		}
 	}
 
 	// WARNING:
@@ -518,19 +515,41 @@ void ModuleNodeCluster::stopSystem()
 {
 }
 
-void ModuleNodeCluster::spawnMCP(int nodeId, int requestedItemId, int contributedItemId)
+void ModuleNodeCluster::UpdateNodeOperations()
+{
+	for (std::vector<NodeOperation>::iterator it = node_operations.begin(); it != node_operations.end(); ++it)
+	{
+		switch ((*it).type)
+		{
+		case NodeOperationType::ADD:
+			(*it).node->itemList().addItem((*it).value);
+			break;
+		case NodeOperationType::REMOVE:
+			(*it).node->itemList().removeItem((*it).value);
+			break;
+		default:
+			break;
+		}
+	}
+
+	node_operations.clear();
+}
+
+MCP* ModuleNodeCluster::spawnMCP(int nodeId, int requestedItemId, int contributedItemId)
 {
 	dLog << "Spawn MCP - node " << nodeId << " - req. " << requestedItemId << " - contrib. " << contributedItemId;
 
 	if (nodeId >= 0 && nodeId < (int)_nodes.size()) 
 	{
 		NodePtr node = _nodes[nodeId];
-		App->agentContainer->createMCP(node.get(), requestedItemId, contributedItemId, 0);
+		return App->agentContainer->createMCP(node.get(), requestedItemId, contributedItemId, 0).get();
 	}
 	else 
 	{
 		wLog << "Could not find node with ID " << nodeId;
 	}
+
+	return nullptr;
 }
 
 void ModuleNodeCluster::spawnMCC(int nodeId, int contributedItemId, int constraintItemId)
@@ -554,9 +573,9 @@ UCCPtr ModuleNodeCluster::spawnUCC(MCC* mcc)
 	{
 		dLog << "Spawn UCC - node " << mcc->node()->id() << " contrib. " << mcc->contributedItemId() << " - constr. " << mcc->constraintItemId();
 
-		if (mcc->node()->id() > 0)
+		if (mcc->node()->id() >= 0)
 		{
-			return App->agentContainer->createUCC(mcc->node(), mcc->contributedItemId(), mcc->constraintItemId());
+			return App->agentContainer->createUCC(mcc->node(), mcc, mcc->contributedItemId(), mcc->constraintItemId());
 		}
 		else
 		{
@@ -573,11 +592,21 @@ UCPPtr ModuleNodeCluster::spawnUCP(MCP* mcp)
 	{
 		dLog << "Spawn UCP - node " << mcp->node()->id() << " contrib. " << mcp->contributedItemId() << " - constr. " << mcp->requestedItemId();
 
-		if (mcp->node()->id() > 0)
+		if (mcp->node()->id() >= 0)
 		{
-			return App->agentContainer->createUCP(mcp->node(), mcp->contributedItemId(), mcp->requestedItemId());
+			return App->agentContainer->createUCP(mcp->node(), mcp, mcp->requestedItemId(), mcp->contributedItemId());
 		}
 	}
 
 	return UCPPtr();
+}
+
+void ModuleNodeCluster::AddNodeOperation(Node * node, NodeOperationType type, uint16_t value)
+{
+	NodeOperation no;
+	no.node = node;
+	no.value = value;
+	no.type = type;
+
+	node_operations.push_back(no);
 }

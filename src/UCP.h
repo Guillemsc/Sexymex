@@ -12,7 +12,7 @@ class UCP :
 public:
 
 	// Constructor and destructor
-	UCP(Node *node, uint16_t requestedItemId, uint16_t contributedItemId);
+	UCP(Node *node, MCP* _mcp, uint16_t requestedItemId, uint16_t contributedItemId);
 	~UCP();
 
 	// Agent methods
@@ -29,15 +29,10 @@ public:
 
 	// ---------------------------------------------
 
+private:
 	// Communication control -----------------------
 
 	bool StartNegotation_SendToUCC(const AgentLocation& mcc);
-
-	// ---------------------------------------------
-
-	// Spawning control ----------------------------
-
-
 
 	// ---------------------------------------------
 
@@ -47,6 +42,6 @@ private:
 	uint16_t _requestedItemId;
 	uint16_t _contributedItemId;
 
-	MCP* _mcp = nullptr; /**< Parent MCP. */
+	MCP* parent_mcp = nullptr; /**< Parent MCP. */
 };
 

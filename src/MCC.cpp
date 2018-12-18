@@ -45,19 +45,6 @@ void MCC::update()
 			}
 			break;
 		}
-
-		case ST_REGISTERING:
-		{
-			// See OnPacketReceived()
-			break;
-		}
-
-		case ST_FINISHED:
-		{
-			destroy();
-
-			break;
-		}
 	}
 }
 
@@ -68,6 +55,10 @@ void MCC::stop()
 
 	Unregister_SendToYellowPages();
 	setState(ST_FINISHED);
+
+	destroy();
+
+	wLog << "MCC Destroyed";
 }
 
 
@@ -94,13 +85,29 @@ void MCC::OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader
 	}
 
 	case PacketType::MCPToMCCNegotiationRequest:
-	{
-		if (state() == ST_IDLE)
-		{
-			PacketMCPToMCCNegotiationRequest packetData;
-			packetData.Deserialize(stream);
+	{		
+		PacketMCPToMCCNegotiationRequest packetData;
+		packetData.Deserialize(stream);
 
-			HandleMCPNegotiationRequest(socket, packetHeader.srcAgentId, packetData.mcp_offer, packetData.mcp_request);
+		HandleMCPNegotiationRequest(socket, packetHeader.srcAgentId, packetData.mcp_offer, packetData.mcp_request);
+		
+		break;
+	}
+
+	case PacketType::MCPToMCCNegotiationFinish:
+	{
+		if (state() == ST_NEGOTIATING)
+		{
+			App->modNodeCluster->AddNodeOperation(node(), NodeOperationType::REMOVE, contributedItemId());
+			App->modNodeCluster->AddNodeOperation(node(), NodeOperationType::ADD, constraintItemId());
+
+			iLog << "MCC exchange at Node " << node()->id() << ":"
+				<< " -" << contributedItemId()
+				<< " +" << constraintItemId();
+
+			setState(State::ST_FINISHED);
+
+			ConnectionFinished_SendToMCP(socket, packetHeader.srcAgentId);
 		}
 
 		break;
@@ -128,12 +135,17 @@ bool MCC::negotiationAgreement() const
 	return negotiationFinished();
 }
 
+void MCC::SetParent(MCC * parent)
+{
+	this->parent = parent;
+}
+
 void MCC::HandleMCPNegotiationRequest(const TCPSocketPtr& socket, uint16_t mcp_id, uint16_t mcp_offer, uint16_t mcp_request)
 {
 	bool negotiate = false;
 	uint16_t ucc_id = 0;
 
-	if (mcp_request == _contributedItemId && state() != State::ST_NEGOTIATING)
+	if (mcp_request == _contributedItemId && state() == State::ST_IDLE)
 		negotiate = true;
 
 	if (negotiate)
@@ -204,6 +216,19 @@ void MCC::NegotiationResponse_SendToMCP(const TCPSocketPtr& socket, uint16_t mpc
 	socket->SendPacket(stream);
 }
 
+void MCC::ConnectionFinished_SendToMCP(const TCPSocketPtr & socket, uint16_t mpc_id)
+{
+	PacketHeader packetHead;
+	packetHead.packetType = PacketType::MCCToMCPConnectionFinished;
+	packetHead.srcAgentId = id();
+	packetHead.dstAgentId = mpc_id;
+
+	OutputMemoryStream stream;
+	packetHead.Serialize(stream);
+
+	socket->SendPacket(stream);
+}
+
 void MCC::createChildUCC()
 {
 	destroyChildUCC();
@@ -215,8 +240,6 @@ void MCC::destroyChildUCC()
 {
 	if (UCCExists())
 	{
-		_ucc->stop();
-
 		_ucc.reset();
 	}
 }

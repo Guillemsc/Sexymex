@@ -21,6 +21,8 @@ enum class PacketType
 	// MCP <-> MCC
 	MCPToMCCNegotiationRequest,
 	MCCToMCPNegotiationResponse,
+	MCPToMCCNegotiationFinish,
+	MCCToMCPConnectionFinished,
 	
 	// UCP <-> UCC
 	UCPToUCCNegotiationRequest,
