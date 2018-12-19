@@ -210,3 +210,19 @@ public:
 		stream.Write(UCCconstraint);
 	}
 };
+
+class PacketMCPToMCCNegotiationFinish
+{
+public:
+	bool succes = false;
+
+	void Deserialize(InputMemoryStream &stream)
+	{
+		stream.Read(succes);
+	}
+
+	void Serialize(OutputMemoryStream &stream)
+	{
+		stream.Write(succes);
+	}
+};

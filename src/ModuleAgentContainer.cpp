@@ -136,6 +136,24 @@ bool ModuleAgentContainer::cleanUp()
 	return true;
 }
 
+uint16_t ModuleAgentContainer::GetAgentsAtNodeWithContributedItem(Node * node, uint16_t contributedItemId)
+{
+	uint16_t ret = 0;
+
+	for (auto agent : _agents)
+	{
+		MCC* mcc = agent->asMCC();
+
+		if (mcc != nullptr && agent->isValid())
+		{
+			if (mcc->node()->id() == node->id() && mcc->contributedItemId() == contributedItemId)
+				++ret;
+		}
+	}
+
+	return ret;
+}
+
 void ModuleAgentContainer::drawInfoGUI()
 {
 	int mccCount = 0;

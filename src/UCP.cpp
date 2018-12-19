@@ -90,12 +90,14 @@ void UCP::HandleUCCNegotiationResponse(const TCPSocketPtr & socket, bool respons
 			if (solution_found)
 			{
 				parent_mcp->ChildUCPSolutionFound();
+
+				iLog << "UCP with [" << _requestedItemId << " : " << _contributedItemId << "] started negotiation and found solution";
 			}
 			else
 			{
 				parent_mcp->createChildMCP(ucc_constraint);
 
-				wLog << "UCP started negotiation but not found solution, creating new MCP [" << ucc_constraint << " : " << _contributedItemId << "]";
+				iLog << "UCP with ["<< _requestedItemId << " : " << _contributedItemId << "] started negotiation with item [" << _requestedItemId << " : " << ucc_constraint << "] but not found solution, creating new MCP [" << ucc_constraint << " : " << _contributedItemId << "]";
 			}
 		}
 		else

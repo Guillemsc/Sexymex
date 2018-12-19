@@ -48,6 +48,7 @@ public:
 	// Remove all agents from memory
 	bool cleanUp() override;
 
+	uint16_t GetAgentsAtNodeWithContributedItem(Node *node, uint16_t contributedItemId);
 
 public:
 

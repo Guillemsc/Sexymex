@@ -272,7 +272,7 @@ void MCP::ChildUCPSolutionFound()
 	if (state() == State::ST_NEGOTIATING)
 	{
 		AgentLocation curr_agent = _mccRegisters[_mccRegisterIndex];
-		FinishNegotiation_SendToMCC(curr_agent);
+		FinishNegotiation_SendToMCC(curr_agent, true);
 
 		setState(State::ST_WAITING_FOR_MCC_CONNECTION_FINISH);
 	}
@@ -282,6 +282,9 @@ void MCP::ChildUCPNegotiationNotFound()
 {
 	if (state() == State::ST_NEGOTIATING)
 	{
+		AgentLocation curr_agent = _mccRegisters[_mccRegisterIndex];
+		FinishNegotiation_SendToMCC(curr_agent, false);
+
 		setState(State::ST_ITERATING_OVER_MCCs);
 
 		destroyChildUCP();
@@ -296,23 +299,27 @@ void MCP::ChildMCPSolutionFound()
 	if (state() == State::ST_NEGOTIATING)
 	{
 		AgentLocation curr_agent = _mccRegisters[_mccRegisterIndex];
-		FinishNegotiation_SendToMCC(curr_agent);
+		FinishNegotiation_SendToMCC(curr_agent, true);
 
 		setState(State::ST_WAITING_FOR_MCC_CONNECTION_FINISH);
 	}
 }
 
+// NEEDS CHECKING (NCC are not resseted with this i think) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 void MCP::ChildMCPSolutionNotFound()
 {
+	if (parent_mcp != nullptr)
+	{
+		parent_mcp->ChildMCPSolutionNotFound();
+	}
+
 	if (state() == State::ST_NEGOTIATING)
 	{
-		if (parent_mcp != nullptr)
-		{
-			parent_mcp->ChildMCPSolutionNotFound();
-		}
-
-		setState(State::ST_NEGOTIATION_FINISHED);
+		AgentLocation curr_agent = _mccRegisters[_mccRegisterIndex];
+		FinishNegotiation_SendToMCC(curr_agent, false);
 	}
+
+	setState(State::ST_NEGOTIATION_FINISHED);
 }
 
 bool MCP::GetMCCsWithItem_SendToYellowPages(int itemId)
@@ -354,15 +361,19 @@ bool MCP::StartNegotation_SendToMCC(const AgentLocation& mcc)
 	return sendPacketToAgent(mcc.hostIP, mcc.hostPort, stream);
 }
 
-bool MCP::FinishNegotiation_SendToMCC(const AgentLocation & mcc)
+bool MCP::FinishNegotiation_SendToMCC(const AgentLocation & mcc, bool succes)
 {
 	PacketHeader packetHead;
 	packetHead.packetType = PacketType::MCPToMCCNegotiationFinish;
 	packetHead.srcAgentId = id();
 	packetHead.dstAgentId = mcc.agentId;
 
+	PacketMCPToMCCNegotiationFinish packetData;
+	packetData.succes = succes;
+
 	OutputMemoryStream stream;
 	packetHead.Serialize(stream);
+	packetData.Serialize(stream);
 
 	return sendPacketToAgent(mcc.hostIP, mcc.hostPort, stream);
 }

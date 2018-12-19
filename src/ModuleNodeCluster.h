@@ -58,6 +58,7 @@ public:
 	void AddNodeOperation(Node* node, NodeOperationType type, uint16_t value);
 
 private:
+	void ClearExcesiveMCC();
 
 	bool startSystem();
 

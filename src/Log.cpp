@@ -37,7 +37,8 @@ LogMessage::LogMessage(Log *owner) :
 
 LogMessage::LogMessage(Log *owner, const char *file, int line) :
 	_owner(owner), _file(BASENAME(file)), _line(line), _level(LDebug)
-{ }
+{
+}
 
 LogMessage::~LogMessage()
 {
@@ -159,7 +160,8 @@ void Log::flush(const LogMessage &m)
 		const char *srcfile = m.file();
 		int srcline = m.line();
 		const char *lvlstr = s_LevelStrings[m.level()];
-		if (srcfile) {
+		if (srcfile) 
+		{
 			sprintf(fileLine, "%s:%d", srcfile, srcline);
 			const int paddingCount = 7 - (int)strlen(lvlstr);
 			char padding[7] = { ' ',' ',' ',' ',' ',' ',' ' };
@@ -167,9 +169,14 @@ void Log::flush(const LogMessage &m)
 			//sprintf(wholeText, "<%s>%s | %s       (%s)\n", lvlstr, padding, text.c_str(), fileLine);
 			int timestamp = GetTickCount();
 			sprintf(wholeText, "%06d <%s>%s | %s\n", timestamp, lvlstr, padding, text.c_str());
+
+			OutputDebugString(std::string(text + "\n").c_str());
 		}
-		else {
+		else 
+		{
 			sprintf(wholeText, "<%s> - %s\n", lvlstr, text.c_str());
+
+			OutputDebugString(std::string(text + "\n").c_str());
 		}
 
 		if (!_filename.empty()) {

@@ -35,6 +35,13 @@ void MCC::update()
 	{
 		case ST_INIT:
 		{
+			if (_contributedItemId == 1 && node()->id() == 3)
+			{
+				int i = id();
+
+				int f = 0;
+			}
+
 			if (Register_SendToYellowPages())
 			{
 				setState(ST_REGISTERING);
@@ -96,18 +103,30 @@ void MCC::OnPacketReceived(TCPSocketPtr socket, const PacketHeader &packetHeader
 
 	case PacketType::MCPToMCCNegotiationFinish:
 	{
-		if (state() == ST_NEGOTIATING)
+		PacketMCPToMCCNegotiationFinish packetData;
+		packetData.Deserialize(stream);
+
+		if (packetData.succes)
 		{
-			App->modNodeCluster->AddNodeOperation(node(), NodeOperationType::REMOVE, contributedItemId());
-			App->modNodeCluster->AddNodeOperation(node(), NodeOperationType::ADD, constraintItemId());
+			if (state() == ST_NEGOTIATING)
+			{
+				App->modNodeCluster->AddNodeOperation(node(), NodeOperationType::REMOVE, contributedItemId());
+				App->modNodeCluster->AddNodeOperation(node(), NodeOperationType::ADD, constraintItemId());
 
-			iLog << "MCC exchange at Node " << node()->id() << ":"
-				<< " -" << contributedItemId()
-				<< " +" << constraintItemId();
+				iLog << "MCC exchange at Node " << node()->id() << ":"
+					<< " -" << contributedItemId()
+					<< " +" << constraintItemId();
 
-			setState(State::ST_FINISHED);
+				setState(State::ST_FINISHED);
 
-			ConnectionFinished_SendToMCP(socket, packetHeader.srcAgentId);
+				ConnectionFinished_SendToMCP(socket, packetHeader.srcAgentId);
+			}
+		}
+		else
+		{
+			setState(State::ST_IDLE);
+
+			socket->Disconnect();
 		}
 
 		break;
@@ -145,16 +164,30 @@ void MCC::HandleMCPNegotiationRequest(const TCPSocketPtr& socket, uint16_t mcp_i
 	bool negotiate = false;
 	uint16_t ucc_id = 0;
 
-	if (mcp_request == _contributedItemId && state() == State::ST_IDLE)
-		negotiate = true;
-
-	if (negotiate)
+	if (state() == State::ST_IDLE)
 	{
-		setState(State::ST_NEGOTIATING);
+		if (_contributedItemId == 1 && node()->id() == 3)
+		{
+			int i = id();
 
-		createChildUCC();
+			int f = 0;
+		}
 
-		ucc_id = _ucc->id();
+		if (mcp_request == _contributedItemId)
+			negotiate = true;
+
+		if (negotiate)
+		{
+			setState(State::ST_NEGOTIATING);
+
+			createChildUCC();
+
+			ucc_id = _ucc->id();
+		}
+	}
+	else
+	{
+		int i = 0;
 	}
 
 	NegotiationResponse_SendToMCP(socket, mcp_id, negotiate, ucc_id);

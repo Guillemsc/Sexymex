@@ -61,7 +61,7 @@ private:
 
 	bool GetMCCsWithItem_SendToYellowPages(int itemId);
 	bool StartNegotation_SendToMCC(const AgentLocation& mcc);
-	bool FinishNegotiation_SendToMCC(const AgentLocation& mcc);
+	bool FinishNegotiation_SendToMCC(const AgentLocation& mcc, bool succes);
 	// ---------------------------------------------
 
 	// Spawning control ----------------------------

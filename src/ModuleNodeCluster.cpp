@@ -366,6 +366,29 @@ void ModuleNodeCluster::OnDisconnected(TCPSocketPtr socket)
 	// Nothing to do
 }
 
+void ModuleNodeCluster::ClearExcesiveMCC()
+{
+	for (AgentPtr agent : App->agentContainer->allAgents())
+	{
+		if (agent->isValid())
+		{
+			Node *node = agent->node();
+			MCC *mcc = agent->asMCC();
+			if (mcc != nullptr)
+			{
+				int numContributedItems = node->itemList().numItemsWithId(mcc->contributedItemId());
+
+				int agentsContributedItems = App->agentContainer->GetAgentsAtNodeWithContributedItem(node, mcc->contributedItemId());
+
+				if (numContributedItems < agentsContributedItems)
+				{
+					agent->stop();
+				}
+			}
+		}
+	}
+}
+
 bool ModuleNodeCluster::startSystem()
 {
 	iLog << "--------------------------------------------";
@@ -500,6 +523,14 @@ void ModuleNodeCluster::runSystem()
 		MCC *mcc = agent->asMCC();
 		if (mcc != nullptr && mcc->isIdling())
 		{
+			if (node->id() == 3)
+			{
+				if (mcc->contributedItemId() == 1)
+				{
+					int i = 0;
+				}
+			}
+
 			int numContributedItems = node->itemList().numItemsWithId(mcc->contributedItemId());
 			int numRequestedItems = node->itemList().numItemsWithId(mcc->constraintItemId());
 
@@ -509,6 +540,8 @@ void ModuleNodeCluster::runSystem()
 			}
 		}
 	}
+
+	ClearExcesiveMCC();
 }
 
 void ModuleNodeCluster::stopSystem()
@@ -525,6 +558,10 @@ void ModuleNodeCluster::UpdateNodeOperations()
 			(*it).node->itemList().addItem((*it).value);
 			break;
 		case NodeOperationType::REMOVE:
+
+			if ((*it).value == 1)
+				int i = 1;
+
 			(*it).node->itemList().removeItem((*it).value);
 			break;
 		default:
