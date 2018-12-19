@@ -496,16 +496,9 @@ void ModuleNodeCluster::runSystem()
 
 		// Update ItemList with MCPs that found a solution
 		MCP *mcp = agent->asMCP();
-		if (mcp != nullptr && mcp->negotiationFinished() && !mcp->IsChild())
+		if (mcp != nullptr && mcp->negotiationFinished())
 		{
 			Node *node = mcp->node();
-
-			if (!mcp->negotiationAgreement())
-			{
-				wLog << "MCP exchange at Node " << node->id() << " not found:"
-					<< " -" << mcp->contributedItemId()
-					<< " +" << mcp->requestedItemId();
-			}
 
 			mcp->stop();
 		}
@@ -541,7 +534,7 @@ void ModuleNodeCluster::runSystem()
 		}
 	}
 
-	ClearExcesiveMCC();
+	//ClearExcesiveMCC();;
 }
 
 void ModuleNodeCluster::stopSystem()

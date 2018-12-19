@@ -35,13 +35,6 @@ void MCC::update()
 	{
 		case ST_INIT:
 		{
-			if (_contributedItemId == 1 && node()->id() == 3)
-			{
-				int i = id();
-
-				int f = 0;
-			}
-
 			if (Register_SendToYellowPages())
 			{
 				setState(ST_REGISTERING);
@@ -166,13 +159,6 @@ void MCC::HandleMCPNegotiationRequest(const TCPSocketPtr& socket, uint16_t mcp_i
 
 	if (state() == State::ST_IDLE)
 	{
-		if (_contributedItemId == 1 && node()->id() == 3)
-		{
-			int i = id();
-
-			int f = 0;
-		}
-
 		if (mcp_request == _contributedItemId)
 			negotiate = true;
 
@@ -184,10 +170,6 @@ void MCC::HandleMCPNegotiationRequest(const TCPSocketPtr& socket, uint16_t mcp_i
 
 			ucc_id = _ucc->id();
 		}
-	}
-	else
-	{
-		int i = 0;
 	}
 
 	NegotiationResponse_SendToMCP(socket, mcp_id, negotiate, ucc_id);

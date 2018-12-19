@@ -170,6 +170,11 @@ void MCP::InitMCCsNegotiationList(std::vector<AgentLocation> agents)
 {
 	if (state() == State::ST_REQUESTING_MCCs)
 	{
+		if (_requestedItemId == 8 && _contributedItemId == 7)
+		{
+			int i = 0;
+		}
+
 		if (agents.size() > 0)
 		{
 			_mccRegisters.swap(agents);
@@ -189,6 +194,8 @@ void MCP::InitMCCsNegotiationList(std::vector<AgentLocation> agents)
 			{
 				parent_mcp->ChildMCPSolutionNotFound();
 			}
+
+			iLog << "MCP list of MCC's is empty, finishing negotiations";
 		}
 	}
 }
@@ -211,6 +218,13 @@ void MCP::StartCurrentMCCNegotiation()
 		else
 		{
 			setState(State::ST_NEGOTIATION_FINISHED);
+
+			negotiation_agreement = false;
+
+			if (parent_mcp != nullptr)
+			{
+				parent_mcp->ChildMCPSolutionNotFound();
+			}
 		}
 	}
 }
@@ -236,6 +250,8 @@ void MCP::SetNextMCC()
 			{
 				parent_mcp->ChildMCPSolutionNotFound();
 			}
+
+			wLog << "MCP runned out of mccs to check, finishing all negotiations";
 		}
 	}
 }
@@ -305,21 +321,20 @@ void MCP::ChildMCPSolutionFound()
 	}
 }
 
-// NEEDS CHECKING (NCC are not resseted with this i think) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 void MCP::ChildMCPSolutionNotFound()
 {
-	if (parent_mcp != nullptr)
-	{
-		parent_mcp->ChildMCPSolutionNotFound();
-	}
-
 	if (state() == State::ST_NEGOTIATING)
 	{
 		AgentLocation curr_agent = _mccRegisters[_mccRegisterIndex];
 		FinishNegotiation_SendToMCC(curr_agent, false);
-	}
 
-	setState(State::ST_NEGOTIATION_FINISHED);
+		setState(State::ST_ITERATING_OVER_MCCs);
+
+		destroyChildUCP();
+
+		SetNextMCC();
+		StartCurrentMCCNegotiation();
+	}
 }
 
 bool MCP::GetMCCsWithItem_SendToYellowPages(int itemId)

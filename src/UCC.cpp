@@ -60,7 +60,6 @@ void UCC::HandleUCPNegotiationRequest(const TCPSocketPtr& socket, uint16_t ucp_i
 	{
 		negotiate = true;
 
-
 		if (ucp_offer == _constraintItemId)
 		{
 			solution_found = true;
