@@ -93,11 +93,17 @@ void UCP::HandleUCCNegotiationResponse(const TCPSocketPtr & socket, bool respons
 
 				iLog << "UCP with [" << _requestedItemId << " : " << _contributedItemId << "] started negotiation and found solution";
 			}
-			else
+			else if (parent_mcp->GetDeepnees() <= 5)
 			{
 				parent_mcp->createChildMCP(ucc_constraint);
 
 				iLog << "UCP with ["<< _requestedItemId << " : " << _contributedItemId << "] started negotiation with item [" << _requestedItemId << " : " << ucc_constraint << "] but not found solution, creating new MCP [" << ucc_constraint << " : " << _contributedItemId << "]";
+			}
+			else
+			{
+				iLog << "UCP with [" << _requestedItemId << " : " << _contributedItemId << "] started negotiation with item [" << _requestedItemId << " : " << ucc_constraint << "] but not found solution, we don't create another child MCP since deepness would be > 5";
+
+				parent_mcp->ChildUCPNegotiationNotFound();
 			}
 		}
 		else

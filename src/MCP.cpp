@@ -136,7 +136,7 @@ bool MCP::negotiationAgreement() const
 	return negotiation_agreement; // TODO: Did the child UCP find a solution?
 }
 
-void MCP::SetParent(MCP * parent)
+void MCP::SetParent(MCP * parent) 
 {
 	this->parent_mcp = parent;
 
@@ -144,9 +144,19 @@ void MCP::SetParent(MCP * parent)
 		is_child = true;
 }
 
-bool MCP::HasParent()
+bool MCP::HasParent() const
 {
 	return parent_mcp != nullptr;
+}
+
+void MCP::SetDeepnees(uint16_t set)
+{
+	deepness = set;
+}
+
+uint16_t MCP::GetDeepnees() const
+{
+	return deepness;
 }
 
 bool MCP::IsChild()
@@ -419,6 +429,7 @@ void MCP::createChildMCP(uint16_t requestedItemId)
 
 	child_mcp = App->modNodeCluster->spawnMCP(node()->id(), requestedItemId, _contributedItemId);
 	child_mcp->SetParent(this);
+	child_mcp->SetDeepnees(GetDeepnees() + 1);
 }
 
 void MCP::destroyChildMCP()

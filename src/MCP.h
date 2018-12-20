@@ -31,7 +31,10 @@ public:
 	bool negotiationAgreement() const;
 
 	void SetParent(MCP * paren);
-	bool HasParent();
+	bool HasParent() const;
+
+	void SetDeepnees(uint16_t set);
+	uint16_t GetDeepnees() const;
 
 	bool IsChild();
 
@@ -92,5 +95,7 @@ private:
 	bool negotiation_agreement = false;
 
 	bool is_child = false;
+
+	uint16_t deepness = 0;
 };
 
